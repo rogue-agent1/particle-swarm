@@ -1,11 +1,11 @@
 # particle-swarm
 
-Particle Swarm Optimization for continuous optimization
+Particle swarm optimization.
+
+Zero dependencies. Python 3.8+.
 
 ## Usage
 
 ```bash
 python3 particle_swarm.py --help
 ```
-
-Zero dependencies. Python 3.8+.
