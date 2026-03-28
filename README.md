@@ -1,6 +1,6 @@
 # particle-swarm
 
-Particle swarm optimization.
+Particle Swarm Optimization.
 
 Zero dependencies. Python 3.8+.
 
