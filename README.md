@@ -1,8 +1,6 @@
 # particle-swarm
 
-Particle Swarm Optimization.
-
-Zero dependencies. Python 3.8+.
+Particle Swarm Optimization. Zero-dependency, single-file Python CLI.
 
 ## Usage
 

@@ -1,45 +1,39 @@
-#!/usr/bin/env python3
-"""particle_swarm - Particle Swarm Optimization."""
 import argparse, random, math
 
-def sphere(x): return sum(xi**2 for xi in x)
-def rastrigin(x): return 10*len(x) + sum(xi**2 - 10*math.cos(2*math.pi*xi) for xi in x)
-def rosenbrock(x): return sum(100*(x[i+1]-x[i]**2)**2 + (1-x[i])**2 for i in range(len(x)-1))
+def sphere(x): return sum(v**2 for v in x)
+def rastrigin(x): return 10*len(x) + sum(v**2 - 10*math.cos(2*math.pi*v) for v in x)
 
-FUNCTIONS = {"sphere": (sphere, (-5,5)), "rastrigin": (rastrigin, (-5.12,5.12)), "rosenbrock": (rosenbrock, (-5,10))}
+FUNCS = {"sphere": sphere, "rastrigin": rastrigin}
 
-def pso(func, dims, bounds, n_particles=30, iterations=200, w=0.7, c1=1.5, c2=1.5):
-    lo, hi = bounds
-    particles = [[random.uniform(lo, hi) for _ in range(dims)] for _ in range(n_particles)]
-    velocities = [[random.uniform(-1,1) for _ in range(dims)] for _ in range(n_particles)]
-    pbest = [p[:] for p in particles]
-    pbest_val = [func(p) for p in particles]
-    gbest = min(pbest, key=func)[:]; gbest_val = func(gbest)
-    for it in range(iterations):
+def pso(func, dim=5, n_particles=30, iters=200, seed=None):
+    if seed: random.seed(seed)
+    w, c1, c2 = 0.7, 1.5, 1.5
+    pos = [[random.uniform(-5, 5) for _ in range(dim)] for _ in range(n_particles)]
+    vel = [[random.uniform(-1, 1) for _ in range(dim)] for _ in range(n_particles)]
+    pbest = [p[:] for p in pos]
+    pbest_f = [func(p) for p in pos]
+    gi = min(range(n_particles), key=lambda i: pbest_f[i])
+    gbest, gbest_f = pbest[gi][:], pbest_f[gi]
+    for it in range(iters):
         for i in range(n_particles):
-            for d in range(dims):
+            for d in range(dim):
                 r1, r2 = random.random(), random.random()
-                velocities[i][d] = w*velocities[i][d] + c1*r1*(pbest[i][d]-particles[i][d]) + c2*r2*(gbest[d]-particles[i][d])
-                particles[i][d] += velocities[i][d]
-                particles[i][d] = max(lo, min(hi, particles[i][d]))
-            val = func(particles[i])
-            if val < pbest_val[i]: pbest[i] = particles[i][:]; pbest_val[i] = val
-            if val < gbest_val: gbest = particles[i][:]; gbest_val = val
-        if it % (iterations//5) == 0:
-            print(f"Iter {it:4d}: best={gbest_val:.6f}")
-    return gbest, gbest_val
+                vel[i][d] = w*vel[i][d] + c1*r1*(pbest[i][d]-pos[i][d]) + c2*r2*(gbest[d]-pos[i][d])
+                pos[i][d] += vel[i][d]
+            f = func(pos[i])
+            if f < pbest_f[i]: pbest[i], pbest_f[i] = pos[i][:], f
+            if f < gbest_f: gbest, gbest_f = pos[i][:], f
+        if it % 40 == 0: print(f"Iter {it:4d}: best={gbest_f:.6f}")
+    print(f"Final: best={gbest_f:.6f}")
 
 def main():
-    p = argparse.ArgumentParser(description="Particle Swarm Optimization")
-    p.add_argument("-f", "--function", choices=list(FUNCTIONS.keys()), default="sphere")
-    p.add_argument("-d", "--dims", type=int, default=10)
+    p = argparse.ArgumentParser(description="PSO optimizer")
+    p.add_argument("func", choices=FUNCS.keys())
+    p.add_argument("-d", "--dim", type=int, default=5)
     p.add_argument("-n", "--particles", type=int, default=30)
-    p.add_argument("-i", "--iterations", type=int, default=200)
+    p.add_argument("--seed", type=int)
     args = p.parse_args()
-    func, bounds = FUNCTIONS[args.function]
-    best, val = pso(func, args.dims, bounds, args.particles, args.iterations)
-    print(f"\nBest value: {val:.8f}")
-    print(f"Solution: [{', '.join(f'{x:.4f}' for x in best[:5])}{'...' if len(best)>5 else ''}]")
+    pso(FUNCS[args.func], args.dim, args.particles, seed=args.seed)
 
 if __name__ == "__main__":
     main()
